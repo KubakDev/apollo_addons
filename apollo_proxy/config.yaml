@@ -1,6 +1,6 @@
 name: "Apollo Proxy"
 description: "Efficient proxy client"
-version: "1.0.1"
+version: "1.0.2"
 slug: "apollo_proxy"
 init: false
 arch:
