@@ -1,7 +1,8 @@
 name: "Apollo Proxy"
 description: "Efficient proxy client"
-version: "1.0.3"
+version: "1.1.0"
 slug: "apollo_proxy"
+url: https://github.com/KubakDev/apollo_proxy_client
 init: false
 arch:
   - aarch64
@@ -10,10 +11,6 @@ arch:
   - armv7
   - i386
 
-# ports:
-#   80/tcp: 80
-#   443/tcp: 443
-# host_network: true
 
 options:
   server: "admin.tunl.kubakgroup.com"
