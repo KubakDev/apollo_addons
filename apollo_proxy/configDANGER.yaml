@@ -14,12 +14,12 @@ arch:
 
 
 options:
-  server: ""
-  token: ""
-  clientname: ""
-  user: ""
-  email: ""
-  certmagic: ""
+  server: "admin.tunl.kubakgroup.com"
+  token: "yPAca1Vh51e1TbZjqvfTv8lbkiK3avsw"
+  clientname: "apollo"
+  user: "admin"
+  email: "meernahro11@gmail.com"
+  certmagic: "/data/certmagic"
 
 schema:
   server: str
