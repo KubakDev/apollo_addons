@@ -1,16 +1,40 @@
 #!/usr/bin/with-contenv bashio
 
 # Prepare /data/certs directory and copy existing certs from /etc/ssl/certs
-mkdir -p /data/certs
-cp -a /etc/ssl/certs/. /data/certs/
+# mkdir -p /data/certs
+# cp -a /etc/ssl/certs/. /data/certs/
 
 # Remove the existing /etc/ssl/certs directory (be very cautious with this step)
-rm -rf /etc/ssl/certs
+# rm -rf /etc/ssl/certs
 
 # Create the symlinks correctly
 
-ln -s /data/certs /etc/ssl/certs
-ln -s /data/.ssh /home/.ssh
+# ln -s /data/certs /etc/ssl/certs
+# ln -s /data/.ssh /home/.ssh
+
+# Path to the flag file in a non-persistent directory
+FLAG_FILE="/tmp/.certs_setup_done"
+
+# Check if the commands have already been run by checking for the flag file
+if [ ! -f "$FLAG_FILE" ]; then
+    echo "Setting up certs and symlinks for the first time..."
+
+    # Prepare /data/certs directory and copy existing certs from /etc/ssl/certs
+    mkdir -p /data/certs
+    cp -a /etc/ssl/certs/. /data/certs/
+
+    # Remove the existing /etc/ssl/certs directory (be very cautious with this step)
+    rm -rf /etc/ssl/certs
+
+    # Create the symlinks correctly
+    ln -s /data/certs /etc/ssl/certs
+    ln -s /data/.ssh /home/.ssh
+
+    # Indicate that setup has been completed by creating a flag file
+    touch "$FLAG_FILE"
+else
+    echo "Certs setup and symlinks have already been configured."
+fi
 
 # Your original script content follows
 SERVER=$(bashio::config 'server')
