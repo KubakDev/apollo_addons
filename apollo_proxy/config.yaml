@@ -1,6 +1,6 @@
 name: "Apollo Proxy"
 description: "Efficient proxy client"
-version: "1.1.6"
+version: "1.1.7"
 
 slug: "apollo_proxy"
 url: https://github.com/KubakDev/apollo_proxy_client
@@ -11,7 +11,8 @@ arch:
   - armhf
   - armv7
   - i386
-
+ports:
+  4554/tcp: 4554
 
 options:
   server: ""
