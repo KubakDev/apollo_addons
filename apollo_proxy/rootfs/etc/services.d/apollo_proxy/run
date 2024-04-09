@@ -45,7 +45,7 @@ EMAIL=$(bashio::config 'email')
 CERTMAGIC=$(bashio::config 'certmagic')
 
 # Define your errors in an array for easy management
-declare -a error_strings=("unable to register tcp forward" "eof" "connection reset by peer")
+declare -a error_strings=("unable to register tcp forward" "eof" "connection reset by peer" "connection refused")
 
 # Function to check for specific log messages
 check_for_errors() {
