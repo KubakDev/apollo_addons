@@ -1,9 +1,9 @@
 name: "Apollo Proxy"
 description: "Efficient proxy client"
-version: "1.2.5"
+version: "1.2.5.1"
 
 slug: "apollo_proxy"
-url: https://github.com/KubakDev/apollo_proxy_client
+url: https://github.com/KubakDev/apollo_addons/tree/main/apollo_proxy
 init: false
 arch:
   - aarch64
@@ -12,6 +12,8 @@ arch:
   - armv7
   - i386
 
+map:
+  - homeassistant_config
 host_network: true
 
 options:

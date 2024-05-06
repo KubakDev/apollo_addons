@@ -1,9 +1,9 @@
 # # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: Apollo Admin
-version: "1.0.5.1"
+version: "1.0.5.2"
 slug: apolloadmin
 description: Connection to Kubak Server
-url: "https://github.com/home-assistant/addons-example/tree/main/example"
+url: "https://github.com/KubakDev/apollo_addons/tree/main/apollo_admin"
 host_network: true
 arch:
   - armhf
@@ -14,6 +14,7 @@ arch:
 init: false
 map:
   - share:rw
+  - homeassistant_config
 # options:
 #   message: "Hello world..."
 # schema:
