@@ -17,7 +17,8 @@ WORKDIR /usr/src/app
 
 # Set shell
 # SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
+RUN chmod a+x /etc/services.d/apollo_admin/run
+RUN chmod a+x /etc/services.d/apollo_admin/finish
 
 RUN npm install
 
