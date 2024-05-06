@@ -1,1 +1,1 @@
-# apollo_proxy_client
+# apollo addons
