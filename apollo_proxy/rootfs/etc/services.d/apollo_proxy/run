@@ -26,13 +26,9 @@ if [ ! -f "$FLAG_FILE" ]; then
     # Remove the existing /etc/ssl/certs directory (be very cautious with this step)
     rm -rf /etc/ssl/certs
 
-     # Create the symlinks only if they don't already exist
-    if [ ! -L "/etc/ssl/certs" ]; then
-        ln -s /data/certs /etc/ssl/certs
-    fi
-    if [ ! -L "/home/.ssh" ]; then
-        ln -s /data/.ssh /home/.ssh
-    fi
+    # Create the symlinks correctly
+    ln -s /data/certs /etc/ssl/certs
+    ln -s /data/.ssh /home/.ssh
 
     # Indicate that setup has been completed by creating a flag file
     touch "$FLAG_FILE"
