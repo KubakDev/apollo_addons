@@ -14,6 +14,7 @@
 
 # Path to the flag file in a non-persistent directory
 FLAG_FILE="/tmp/.certs_setup_done"
+echo "Yo my man Hello"
 
 # Check if the commands have already been run by checking for the flag file
 if [ ! -f "$FLAG_FILE" ]; then
