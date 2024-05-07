@@ -11,6 +11,7 @@ const config = {
     apolloAdminAuth: 'apolloadmin/apolloserver/auth',
     apolloAdminReady: 'apolloadmin/ready',
     apolloServerRequest: "apolloadmin/apolloserver",
+    apolloServerRequestResponse: "apolloadmin/apolloserver/response",
     baseUrl: 'http://tunl.kubakgroup.com:90'
 };
 
@@ -75,26 +76,56 @@ mqttClient.on('message', async (topic, message, packet) => {
 
 
 
-// Function to send an MQTT message
-function sendMqttMessage(topic, payload, correlationData = "1") {
-    const options = {
-        properties: {
-            correlationData: Buffer.from(correlationData)
-        }
-    };
 
-    if (typeof payload !== 'string') {
-        payload = JSON.stringify(payload);
-    }
+// Function to send an MQTT message and listen for response
+function sendMqttMessage(topic, payload, correlationData = "1", responseTopic) {
+    return new Promise((resolve, reject) => {
+        const options = {
+            properties: {
+                correlationData: Buffer.from(correlationData)
+            }
+        };
 
-    mqttClient.publish(topic, payload, options, (err) => {
-        if (err) {
-            console.error('Publish error:', err);
-        } else {
-            console.log('Message sent:', topic, payload, options.properties);
+        // Add responseTopic to properties if provided
+        if (responseTopic) {
+            options.properties.responseTopic = responseTopic;
         }
+
+        if (typeof payload !== 'string') {
+            payload = JSON.stringify(payload);
+        }
+
+        // Listen for response
+        const responseListener = (responseTopic, correlationData) => {
+            const subscription = mqttClient.subscribe(responseTopic, (err) => {
+                if (!err) {
+                    mqttClient.once('message', (topic, message, packet) => {
+                        const receivedCorrelationData = packet.properties ? packet.properties.correlationData.toString() : null;
+                        if (receivedCorrelationData === correlationData) {
+                            resolve(message.toString());
+                            mqttClient.unsubscribe(responseTopic);
+                        }
+                    });
+                } else {
+                    reject(err);
+                }
+            });
+        };
+
+        mqttClient.publish(topic, payload, options, (err) => {
+            if (err) {
+                console.error('Publish error:', err);
+                reject(err);
+            } else {
+                console.log('Message sent:', topic, payload, options.properties);
+                if (responseTopic) {
+                    responseListener(responseTopic, correlationData);
+                }
+            }
+        });
     });
 }
+
 
 
 
@@ -128,16 +159,25 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
         await setupSignalRConnection(token, responseTopic, correlationData);
     });
 
+
+
+
+
         // Handle server-sent events named "Request"
-        signalRConnection.on("Request", (data) => {
-            console.log("Received data from server on 'Request':", data);
-            try {
-                sendMqttMessage(config.apolloServerRequest,data);
-                
-            } catch (error) {
-                console.log(error)
-            }
-        });
+signalRConnection.on("Request", async (data) => {
+    console.log("Received data from server on 'Request':", data);
+    try {
+        const response = await sendMqttMessage(config.apolloServerRequest, data, "80", config.apolloServerRequestResponse);
+        console.log("Response received:", JSON.parse(response));
+        return JSON.parse(response)
+        // Here you can further process the response if needed or send it back to SignalR
+        // For now, let's just log the response
+    } catch (error) {
+        console.log(error);
+        // Handle the error if needed
+    }
+});
+
 
 }
 
