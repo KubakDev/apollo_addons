@@ -201,7 +201,7 @@ signalRConnection.on("Request", async (data) => {
         // For now, let's just log the response
     } catch (error) {
         console.log(error);
-        // Handle the error if needed
+        return {success:false,error}
     }
 });
 
