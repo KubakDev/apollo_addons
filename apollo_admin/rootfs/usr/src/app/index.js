@@ -7,12 +7,19 @@ const config = {
     username: 'mqtt',
     password: '15217320',
     protocolVersion: 5,
-    apolloAdminRequest: 'apolloadmin/apolloserver/request',
-    apolloAdminAuth: 'apolloadmin/apolloserver/auth',
+    
+    // apolloAdminAuth: 'apolloadmin/apolloserver/auth',
     apolloAdminReady: 'apolloadmin/ready',
-    apolloServerRequest: "apolloadmin/apolloserver",
-    apolloServerRequestResponse: "apolloadmin/apolloserver/response",
-    baseUrl: 'http://tunl.kubakgroup.com:90'
+
+    
+    baseUrl: 'http://tunl.kubakgroup.com:90',
+
+    kubakToNodeRequest: "kubaktonode/request",
+    kubakToNodeResponse: "kubaktonode/request/response",
+    nodeToKubakRequest: 'nodetokubak/request',
+    nodeToKubakSetupApollo: "nodetokubak/setupapollo",
+    nodeToKubakAuth: "nodetokubak/auth"
+
 };
 
 // Create an MQTT client
@@ -34,11 +41,11 @@ let signalRConnection;
 // Connect to MQTT
 mqttClient.on('connect', async () => {
     console.log('Connected to MQTT');
-    await mqttClient.subscribe([config.apolloAdminRequest, config.apolloAdminAuth]);
+    await mqttClient.subscribe([config.nodeToKubakRequest, config.nodeToKubakAuth, config.nodeToKubakSetupApollo]);
 
     msg = {success:true,result:'ready'}
     sendMqttMessage(config.apolloAdminReady,msg);
-    console.log(`Subscribed to MQTT topics: ${config.apolloAdmin}, ${config.apolloAdminAuth}`);
+    // console.log(`Subscribed to MQTT topics: ${config.apolloAdmin}, ${config.apolloAdminAuth}`);
 });
 
 
@@ -51,7 +58,7 @@ mqttClient.on('message', async (topic, message, packet) => {
     const { responseTopic = null, correlationData = null } = packet.properties || {};
     const msg = message.toString();
     switch (topic) {
-        case config.apolloAdminAuth:
+        case config.nodeToKubakAuth:
             
             if (responseTopic && correlationData) {
                 await setupSignalRConnection(msg, responseTopic, correlationData);
@@ -59,13 +66,22 @@ mqttClient.on('message', async (topic, message, packet) => {
                 console.log('Missing responseTopic or correlationData; cannot setup SignalR connection.');
             }
             break;
-        case config.apolloAdminRequest:
+        case config.nodeToKubakSetupApollo:
             if (responseTopic && correlationData) {
                 invokeSignalRMethod(msg, responseTopic,correlationData);
             } else {
                 console.log('Missing responseTopic or correlationData; cannot continue.');
             }
 
+            break;
+
+         case config.nodeToKubakRequest:
+            if (responseTopic && correlationData) {
+                invokeSignalRMethod(msg, responseTopic,correlationData);
+            } else {
+                    console.log('Missing responseTopic or correlationData; cannot continue.');
+                }
+    
             break;
         // Add more cases as needed for other topics
         default:
@@ -97,6 +113,7 @@ function sendMqttMessage(topic, payload, correlationData = "1", responseTopic) {
 
         // Listen for response
         const responseListener = (responseTopic, correlationData) => {
+            console.log("hahahahahah");
             const subscription = mqttClient.subscribe(responseTopic, (err) => {
                 if (!err) {
                     mqttClient.once('message', (topic, message, packet) => {
@@ -167,7 +184,7 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
 signalRConnection.on("Request", async (data) => {
     console.log("Received data from server on 'Request':", data);
     try {
-        const response = await sendMqttMessage(config.apolloServerRequest, data, "80", config.apolloServerRequestResponse);
+        const response = await sendMqttMessage(config.kubakToNodeRequest, data, "80", config.kubakToNodeResponse);
         console.log("Response received:", JSON.parse(response));
         return JSON.parse(response)
         // Here you can further process the response if needed or send it back to SignalR
@@ -262,3 +279,4 @@ setInterval(async () => {
         console.log('SignalR connection is active and healthy.');
     }
 }, 600000);  // 600000 milliseconds = 10 minutes
+
