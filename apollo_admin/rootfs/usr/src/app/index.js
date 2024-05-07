@@ -18,7 +18,8 @@ const config = {
     kubakToNodeResponse: "kubaktonode/request/response",
     nodeToKubakRequest: 'nodetokubak/request',
     nodeToKubakSetupApollo: "nodetokubak/setupapollo",
-    nodeToKubakAuth: "nodetokubak/auth"
+    nodeToKubakAuth: "nodetokubak/auth",
+    ping: "ping"
 
 };
 
@@ -41,7 +42,7 @@ let signalRConnection;
 // Connect to MQTT
 mqttClient.on('connect', async () => {
     console.log('Connected to MQTT');
-    await mqttClient.subscribe([config.nodeToKubakRequest, config.nodeToKubakAuth, config.nodeToKubakSetupApollo]);
+    await mqttClient.subscribe([config.nodeToKubakRequest, config.nodeToKubakAuth, config.ping, config.nodeToKubakSetupApollo]);
 
     msg = {success:true,result:'ready'}
     sendMqttMessage(config.apolloAdminReady,msg);
@@ -78,6 +79,15 @@ mqttClient.on('message', async (topic, message, packet) => {
          case config.nodeToKubakRequest:
             if (responseTopic && correlationData) {
                 invokeSignalRMethod(msg, responseTopic,correlationData);
+            } else {
+                    console.log('Missing responseTopic or correlationData; cannot continue.');
+                }
+    
+            break;
+
+         case config.ping:
+            if (responseTopic && correlationData) {
+                sendMqttMessage(responseTopic,signalRConnection.state)
             } else {
                     console.log('Missing responseTopic or correlationData; cannot continue.');
                 }
