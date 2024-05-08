@@ -14,7 +14,7 @@ const config = {
     
     baseUrl: 'http://tunl.kubakgroup.com:90',
 
-    kubakToNodeRequest: "kubaktonode/request",
+    kubakToNodeRequest: "kubaktonode/request/await",
     kubakToNodeResponse: "kubaktonode/request/response",
     nodeToKubakRequest: 'nodetokubak/request',
     nodeToKubakSetupApollo: "nodetokubak/setupapollo",
@@ -201,7 +201,7 @@ signalRConnection.on("Request", async (data) => {
         // For now, let's just log the response
     } catch (error) {
         console.log(error);
-        return {success:false,error}
+        return {success:false,error:{code:"0101",message:"mqtt error"}}
     }
 });
 
