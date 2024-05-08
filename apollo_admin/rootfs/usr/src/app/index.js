@@ -14,7 +14,7 @@ const config = {
     
     baseUrl: 'http://tunl.kubakgroup.com:90',
 
-    kubakToNodeRequest: "kubaktonode/request/await",
+    kubakToNodeRequest: "kubaktonode/request",
     kubakToNodeResponse: "kubaktonode/request/response",
     nodeToKubakRequest: 'nodetokubak/request',
     nodeToKubakSetupApollo: "nodetokubak/setupapollo",
