@@ -1,33 +1,31 @@
 const mqtt = require("mqtt");
+const fs = require("fs");
+const yaml = require("js-yaml");
 const { HubConnectionBuilder, LogLevel } = require("@microsoft/signalr");
 
-// Configuration (update these with your actual URLs and topics)
-const config = {
-  mqttUrl: "mqtt://apollo.local:1883",
-  username: "mqtt",
-  password: "15217320",
-  protocolVersion: 5,
+const config = loadConfig();
 
-  // apolloAdminAuth: 'apolloadmin/apolloserver/auth',
-  apolloAdminReady: "apolloadmin/ready",
-
-  baseUrl: "http://tunl.kubakgroup.com:90",
-
-  kubakToNodeRequest: "kubaktonode/request",
-  kubakToNodeResponse: "kubaktonode/request/response",
-  kubakToNodeResponseNoAwait: "kubaktonode/request/response/noawait",
-
-  nodeToKubakRequest: "nodetokubak/request",
-  nodeToKubakSetupApollo: "nodetokubak/setupapollo",
-  nodeToKubakAuth: "nodetokubak/auth",
-  ping: "ping",
-};
+// Function to load YAML configuration
+function loadConfig() {
+  try {
+    // Read YAML file
+    const fileContents = fs.readFileSync("/homeassistant/secrets.yaml", "utf8");
+    // Parse the YAML file
+    const data = yaml.load(fileContents);
+    const config = data.apollo_admin;
+    return config;
+  } catch (e) {
+    console.error("Error reading or parsing the YAML file:", e);
+    process.exit(4);
+    return null;
+  }
+}
 
 // Create an MQTT client
 const mqttClient = mqtt.connect(config.mqttUrl, {
   username: config.username,
   password: config.password,
-  protocolVersion: config.protocolVersion,
+  protocolVersion: 5,
   properties: {
     requestResponseInformation: true,
   },
