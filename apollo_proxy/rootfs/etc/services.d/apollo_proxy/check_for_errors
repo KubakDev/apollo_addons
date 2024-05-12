@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Array of error strings
+declare -a error_strings=("unable to register tcp forward" "eof" "connection reset by peer" "connection refused" "server misbehaving")
+
+while IFS= read -r line; do
+  echo "$line"  # Log line for s6-log or other mechanisms
+  local lowercase_line=$(echo "$line" | tr '[:upper:]' '[:lower:]')
+
+  for error in "${error_strings[@]}"; do
+    if [[ "$lowercase_line" == *"$error"* ]]; then
+      echo "Detected critical error, exiting..."
+      s6-svscanctl -t /var/run/s6/services  # Terminate the scan service tree
+      exit 2
+    fi
+  done
+done

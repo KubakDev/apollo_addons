@@ -46,27 +46,27 @@ EMAIL=$(bashio::config 'email')
 CERTMAGIC=$(bashio::config 'certmagic')
 
 # Define your errors in an array for easy management
-declare -a error_strings=("unable to register tcp forward" "eof" "connection reset by peer" "connection refused" "server misbehaving")
+# declare -a error_strings=("unable to register tcp forward" "eof" "connection reset by peer" "connection refused" "server misbehaving")
 
-# Function to check for specific log messages
-check_for_errors() {
-    while IFS= read -r line; do
-        # Convert line to lowercase
-        local lowercase_line=$(echo "$line" | tr '[:upper:]' '[:lower:]')
+# # Function to check for specific log messages
+# check_for_errors() {
+#     while IFS= read -r line; do
+#         # Convert line to lowercase
+#         local lowercase_line=$(echo "$line" | tr '[:upper:]' '[:lower:]')
         
-        # Check each error string against the line
-        for error in "${error_strings[@]}"; do
-            if [[ "$lowercase_line" == *"$error"* ]]; then
-                echo "$line"
-                echo "Detected critical error, exiting..."
-                exit 4
-            fi
-        done
+#         # Check each error string against the line
+#         for error in "${error_strings[@]}"; do
+#             if [[ "$lowercase_line" == *"$error"* ]]; then
+#                 echo "$line"
+#                 echo "Detected critical error, exiting..."
+#                 exit 4
+#             fi
+#         done
         
-        echo "$line"
-    done
-}
-echo "running"
-exec /usr/bin/boringproxy client -server $SERVER -token $TOKEN -client-name $CLIENTNAME -user $USER -cert-dir $CERTMAGIC -acme-email $EMAIL 2>&1 | check_for_errors
+#         echo "$line"
+#     done
+# }
+
+exec /usr/bin/boringproxy client -server $SERVER -token $TOKEN -client-name $CLIENTNAME -user $USER -cert-dir $CERTMAGIC -acme-email $EMAIL 2>&1 | /etc/services.d/apollo_proxy/check_for_errors
 
 
