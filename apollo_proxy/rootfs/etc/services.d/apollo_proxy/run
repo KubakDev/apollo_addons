@@ -58,7 +58,7 @@ check_for_errors() {
         for error in "${error_strings[@]}"; do
             if [[ "$lowercase_line" == *"$error"* ]]; then
                 echo "Detected critical error, exiting..."
-                kill -s TERM $$
+                exit 4
             fi
         done
         
