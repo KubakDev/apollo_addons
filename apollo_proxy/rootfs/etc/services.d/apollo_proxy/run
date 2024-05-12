@@ -66,7 +66,7 @@ check_for_errors() {
         echo "$line"
     done
 }
-
+echo "running"
 exec /usr/bin/boringproxy client -server $SERVER -token $TOKEN -client-name $CLIENTNAME -user $USER -cert-dir $CERTMAGIC -acme-email $EMAIL 2>&1 | check_for_errors
 
 
