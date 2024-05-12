@@ -1,23 +1,370 @@
+// const mqtt = require("mqtt");
+// const fs = require("fs");
+// const yaml = require("js-yaml");
+// const { HubConnectionBuilder, LogLevel, JsonHubProtocol } = require("@microsoft/signalr");
+
+// const config = loadConfig();
+
+// // Function to load YAML configuration
+// function loadConfig() {
+//   try {
+//     // Read YAML file
+//     const fileContents = fs.readFileSync("/homeassistant/secrets.yaml", "utf8");
+//     // Parse the YAML file
+//     const data = yaml.load(fileContents);
+//     const config = data.apollo_admin;
+//     return config;
+//   } catch (e) {
+//     console.error("Error reading or parsing the YAML file:", e);
+//     process.exit(4);
+//     return null;
+//   }
+// }
+
+// // Create an MQTT client
+// const mqttClient = mqtt.connect(config.mqttUrl, {
+//   username: config.username,
+//   password: config.password,
+//   protocolVersion: 5,
+//   properties: {
+//     requestResponseInformation: true,
+//   },
+// });
+
+// let signalRConnection;
+
+// // Connect to MQTT
+// mqttClient.on("connect", async () => {
+//   await mqttClient.subscribe([
+//     config.nodeToKubakRequest,
+//     config.nodeToKubakAuth,
+//     config.ping,
+//     config.nodeToKubakSetupApollo,
+//     config.kubakToNodeResponseNoAwait,
+//   ]);
+
+//   msg = { success: true, result: "ready" };
+//   sendMqttMessage(config.apolloAdminReady, msg);
+// });
+
+// // MQTT message handling
+// mqttClient.on("message", async (topic, message, packet) => {
+//   console.log(`Received message from ${topic}: ${message.toString()}`);
+
+//   // Extract responseTopic and correlationData with null checks
+//   const { responseTopic = null, correlationData = null } =
+//     packet.properties || {};
+//   const msg = message.toString();
+//   switch (topic) {
+//     case config.nodeToKubakAuth:
+//       if (responseTopic && correlationData) {
+//         await setupSignalRConnection(msg, responseTopic, correlationData);
+//       } else {
+//         console.log(
+//           "Missing responseTopic or correlationData; cannot setup SignalR connection."
+//         );
+//       }
+//       break;
+//     case config.nodeToKubakSetupApollo:
+//       if (responseTopic && correlationData) {
+//         invokeSignalRMethod(msg, responseTopic, correlationData);
+//       } else {
+//         console.log(
+//           "Missing responseTopic or correlationData; cannot continue."
+//         );
+//       }
+
+//       break;
+
+//     case config.nodeToKubakRequest:
+//       if (responseTopic && correlationData) {
+//         invokeSignalRMethod(msg, responseTopic, correlationData);
+//       } else {
+//         console.log(
+//           "Missing responseTopic or correlationData; cannot continue."
+//         );
+//       }
+
+//       break;
+
+//     case config.ping:
+//       if (responseTopic && correlationData) {
+//         sendMqttMessage(responseTopic, signalRConnection.state);
+//       } else {
+//         console.log(
+//           "Missing responseTopic or correlationData; cannot continue."
+//         );
+//       }
+
+//       break;
+
+//     case config.kubakToNodeResponseNoAwait:
+//       if (correlationData) {
+//       }
+//       break;
+//     // Add more cases as needed for other topics
+//     default:
+//       console.log(`No handler for topic: ${topic}`);
+//       break;
+//   }
+// });
+
+// // Function to send an MQTT message and listen for response
+// function sendMqttMessage(
+//   topic,
+//   payload,
+//   correlationData = "1",
+//   responseTopic,
+//   responseTopicNoAwait
+// ) {
+//   return new Promise((resolve, reject) => {
+//     const options = {
+//       properties: {
+//         correlationData: Buffer.from(correlationData),
+//       },
+//     };
+
+//     // Add responseTopic to properties if provided
+//     if (responseTopic) {
+//       options.properties.responseTopic = responseTopic;
+//     }
+//     if (responseTopicNoAwait) {
+//       payload.responseTopicNoAwait = responseTopicNoAwait;
+//     }
+
+//     if (typeof payload !== "string") {
+//       payload = JSON.stringify(payload);
+//     }
+
+//     // Listen for response
+//     const responseListener = (responseTopic, correlationData) => {
+//       const subscription = mqttClient.subscribe(responseTopic, (err) => {
+//         if (!err) {
+//           mqttClient.once("message", (topic, message, packet) => {
+//             const receivedCorrelationData = packet.properties
+//               ? packet.properties.correlationData.toString()
+//               : null;
+//             if (receivedCorrelationData === correlationData) {
+//               resolve(message.toString());
+//               mqttClient.unsubscribe(responseTopic);
+//             }
+//           });
+//         } else {
+//           reject(err);
+//         }
+//       });
+//     };
+
+//     mqttClient.publish(topic, payload, options, (err) => {
+//       if (err) {
+//         console.error("Publish error:", err);
+//         reject(err);
+//       } else {
+//         console.log("Message sent:", topic, payload, options.properties);
+//         if (responseTopic) {
+//           responseListener(responseTopic, correlationData);
+//         }
+//       }
+//     });
+//   });
+// }
+
+// // Setup SignalR connection
+// async function setupSignalRConnection(token, responseTopic, correlationData) {
+//   const baseUrlWithToken = `${config.baseUrl}/apollo-hub?access-token=${token}`;
+//   signalRConnection = new HubConnectionBuilder()
+//     .withUrl(baseUrlWithToken)
+//     .withAutomaticReconnect()
+//     .configureLogging(LogLevel.Information)
+//     .build();
+
+//   try {
+//     await signalRConnection.start();
+//     if (signalRConnection.state === "Connected") {
+//       const msg = { success: true, result: "Connected to SignalR" };
+//       sendMqttMessage(responseTopic, msg, correlationData);
+//     }
+//   } catch (err) {
+//     console.error("SignalR connection error:", err);
+//     // setTimeout(
+//     //   () => setupSignalRConnection(token, responseTopic, correlationData),
+//     //   5000
+//     // ); // Retry connection
+//   }
+
+//   signalRConnection.onclose(async () => {
+//     console.log("SignalR connection lost. Attempting to reconnect...");
+//     await setupSignalRConnection(token, responseTopic, correlationData);
+//   });
+
+//   // Handle server-sent events named "Request"
+//   signalRConnection.on("Request", async (data) => {
+//     console.log("Received data from server on 'Request':", data);
+//     if (data.hasResult) {
+//       try {
+//         const response = await sendMqttMessage(
+//           config.kubakToNodeRequest,
+//           data,
+//           "80",
+//           config.kubakToNodeResponse
+//         );
+//         console.log("Sending Response back to SignalR: "+ JSON.parse(response));
+//         return JSON.parse(response);
+
+//       } catch (error) {
+//         console.log(error);
+//         return {
+//           success: false,
+//           error: { code: "0101", message: "mqtt error" },
+//         };
+//       }
+//     } else {
+//       try {
+//         sendMqttMessage(
+//           config.kubakToNodeRequest,
+//           data,
+//           "80",
+//           (responseTopic = null),
+//           (responseTopicNoAwait = config.kubakToNodeResponseNoAwait)
+//         );
+
+//         // Here you can further process the response if needed or send it back to SignalR
+//         // For now, let's just log the response
+//       } catch (error) {
+//         console.log(error);
+//       }
+//     }
+//   });
+// }
+
+// // Async function to invoke a method on SignalR and handle the response
+// async function invokeSignalRMethod(msg, responseTopic, correlationData) {
+//   if (signalRConnection && signalRConnection.state === "Connected") {
+//     try {
+//       parsedMsg = JSON.parse(msg);
+//       methodName = parsedMsg.command;
+//       methodArgs = parsedMsg.data;
+//       const response = await signalRConnection.invoke(methodName, methodArgs);
+//       payload = response;
+//       console.log(`Response from ${methodName}:`, response);
+
+//       sendMqttMessage(responseTopic, payload, correlationData);
+//     } catch (error) {
+//       console.error(`Error invoking ${methodName} on SignalR:`, error);
+//       // Optionally handle or rethrow the error based on your use case
+
+//       // Construct a meaningful error message
+//       const errorMsg = {
+//         name: error.name,
+//         message: error.message,
+//         stack: error.stack, // Optionally include the stack trace if useful
+//       };
+
+//       payload = { success: false, error: errorMsg };
+//       sendMqttMessage(responseTopic, payload, correlationData);
+//     }
+//   } else {
+//     console.log("SignalR is not connected. Sending ready message.");
+//     const msg = { success: true, result: "ready" };
+//     sendMqttMessage(config.apolloAdminReady, msg);
+//   }
+// }
+
+// // MQTT reconnect and error handling
+// mqttClient.on("reconnect", () => {
+//   console.log("Reconnecting to MQTT...");
+// });
+
+// mqttClient.on("error", (err) => {
+//   console.log("MQTT Error:", err);
+// });
+
+// // Exit gracefully
+// process.on("SIGINT", async () => {
+//   if (mqttClient) {
+//     mqttClient.end();
+//   }
+//   if (signalRConnection) {
+//     await signalRConnection.stop();
+//   }
+//   console.log("Gracefully shutting down...");
+//   process.exit(0);
+// });
+
+// // Periodic check to ensure SignalR connection is active
+// setInterval(async () => {
+//   if (!signalRConnection || signalRConnection.state !== "Connected") {
+//     console.log("SignalR connection is not active. Attempting to reconnect...");
+//     // Attempt to reconnect or handle the logic as required; example uses a simple message send
+//     const msg = { success: true, result: "ready" };
+//     sendMqttMessage(config.apolloAdminReady, msg);
+//   } else {
+//     console.log("SignalR connection is active and healthy.");
+//   }
+// }, 600000); // 600000 milliseconds = 10 minutes
+
 const mqtt = require("mqtt");
 const fs = require("fs");
 const yaml = require("js-yaml");
-const { HubConnectionBuilder, LogLevel, JsonHubProtocol } = require("@microsoft/signalr");
+const {
+  HubConnectionBuilder,
+  LogLevel,
+  JsonHubProtocol,
+} = require("@microsoft/signalr");
+const winston = require("winston");
+
+const { createLogger, format, transports } = winston;
+const { combine, printf, colorize } = format;
+
+// Set colors for different levels
+const myCustomLevels = {
+  levels: {
+    error: 0,
+    warn: 1,
+    info: 2,
+    debug: 3,
+  },
+  colors: {
+    error: "red",
+    warn: "yellow",
+    info: "green",
+    debug: "blue",
+  },
+};
+
+winston.addColors(myCustomLevels.colors);
+
+// Custom printf format that includes human-readable AM/PM timestamps
+const myFormat = printf(({ level, message, timestamp }) => {
+  // Create a timestamp in the "HH:mm:ss A" format
+  const time = new Date(timestamp).toLocaleTimeString("en-US", {
+    hour12: true,
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  return `${time} ${level}: ${message}`;
+});
+
+// Create a logger
+const logger = createLogger({
+  levels: myCustomLevels.levels,
+  format: combine(colorize(), format.timestamp(), myFormat),
+  transports: [new transports.Console()],
+});
 
 const config = loadConfig();
 
 // Function to load YAML configuration
 function loadConfig() {
   try {
-    // Read YAML file
     const fileContents = fs.readFileSync("/homeassistant/secrets.yaml", "utf8");
-    // Parse the YAML file
     const data = yaml.load(fileContents);
-    const config = data.apollo_admin;
-    return config;
+    return data.apollo_admin;
   } catch (e) {
-    console.error("Error reading or parsing the YAML file:", e);
+    logger.error("Error reading or parsing the YAML file", e);
     process.exit(4);
-    return null;
   }
 }
 
@@ -33,83 +380,87 @@ const mqttClient = mqtt.connect(config.mqttUrl, {
 
 let signalRConnection;
 
-// Connect to MQTT
 mqttClient.on("connect", async () => {
-  await mqttClient.subscribe([
-    config.nodeToKubakRequest,
-    config.nodeToKubakAuth,
-    config.ping,
-    config.nodeToKubakSetupApollo,
-    config.kubakToNodeResponseNoAwait,
-  ]);
-
-  msg = { success: true, result: "ready" };
-  sendMqttMessage(config.apolloAdminReady, msg);
-});
-
-// MQTT message handling
-mqttClient.on("message", async (topic, message, packet) => {
-  console.log(`Received message from ${topic}: ${message.toString()}`);
-
-  // Extract responseTopic and correlationData with null checks
-  const { responseTopic = null, correlationData = null } =
-    packet.properties || {};
-  const msg = message.toString();
-  switch (topic) {
-    case config.nodeToKubakAuth:
-      if (responseTopic && correlationData) {
-        await setupSignalRConnection(msg, responseTopic, correlationData);
-      } else {
-        console.log(
-          "Missing responseTopic or correlationData; cannot setup SignalR connection."
-        );
-      }
-      break;
-    case config.nodeToKubakSetupApollo:
-      if (responseTopic && correlationData) {
-        invokeSignalRMethod(msg, responseTopic, correlationData);
-      } else {
-        console.log(
-          "Missing responseTopic or correlationData; cannot continue."
-        );
-      }
-
-      break;
-
-    case config.nodeToKubakRequest:
-      if (responseTopic && correlationData) {
-        invokeSignalRMethod(msg, responseTopic, correlationData);
-      } else {
-        console.log(
-          "Missing responseTopic or correlationData; cannot continue."
-        );
-      }
-
-      break;
-
-    case config.ping:
-      if (responseTopic && correlationData) {
-        sendMqttMessage(responseTopic, signalRConnection.state);
-      } else {
-        console.log(
-          "Missing responseTopic or correlationData; cannot continue."
-        );
-      }
-
-      break;
-
-    case config.kubakToNodeResponseNoAwait:
-      if (correlationData) {
-      }
-      break;
-    // Add more cases as needed for other topics
-    default:
-      console.log(`No handler for topic: ${topic}`);
-      break;
+  try {
+    await mqttClient.subscribe([
+      config.nodeToKubakRequest,
+      config.nodeToKubakAuth,
+      config.ping,
+      config.nodeToKubakSetupApollo,
+      config.kubakToNodeResponseNoAwait,
+    ]);
+    const msg = { success: true, result: "ready" };
+    sendMqttMessage(config.apolloAdminReady, msg);
+  } catch (e) {
+    logger.error("MQTT connect error", e);
   }
 });
 
-// Function to send an MQTT message and listen for response
+mqttClient.on("message", async (topic, message, packet) => {
+  logger.info(`Received message from ${topic}: ${message.toString()}`);
+  try {
+    const { responseTopic = null, correlationData = null } =
+      packet.properties || {};
+    const msg = message.toString();
+
+    switch (topic) {
+      case config.nodeToKubakAuth:
+        if (responseTopic && correlationData) {
+          await setupSignalRConnection(msg, responseTopic, correlationData);
+        } else {
+          logger.warn(
+            `Missing responseTopic or correlationData; cannot continue.
+            ${topic}`
+          );
+        }
+
+        break;
+      case config.nodeToKubakSetupApollo:
+        if (responseTopic && correlationData) {
+          invokeSignalRMethod(msg, responseTopic, correlationData);
+        } else {
+            logger.warn(
+              `Missing responseTopic or correlationData; cannot continue.
+              ${topic}`
+          );
+        }
+        break;
+
+      case config.nodeToKubakRequest:
+        if (responseTopic && correlationData) {
+          await invokeSignalRMethod(msg, responseTopic, correlationData);
+        } else {
+          logger.warn(
+            `Missing responseTopic or correlationData; cannot continue.
+            ${topic}`
+          );
+        }
+        break;
+
+      case config.ping:
+        if (responseTopic && correlationData) {
+          sendMqttMessage(responseTopic, signalRConnection.state);
+        } else {
+          logger.warn(
+            `Missing responseTopic or correlationData; cannot continue.
+            ${topic}`
+          );
+        }
+        break;
+
+      case config.kubakToNodeResponseNoAwait:
+        // No specific action required
+        break;
+
+      default:
+        logger.info(`No handler for topic: ${topic}`);
+        break;
+    }
+  } catch (e) {
+    logger.error("Error handling MQTT message", e);
+  }
+});
+
 function sendMqttMessage(
   topic,
   payload,
@@ -118,88 +469,75 @@ function sendMqttMessage(
   responseTopicNoAwait
 ) {
   return new Promise((resolve, reject) => {
-    const options = {
-      properties: {
-        correlationData: Buffer.from(correlationData),
-      },
-    };
+    try {
+      const options = {
+        properties: {
+          correlationData: Buffer.from(correlationData),
+        },
+      };
 
-    // Add responseTopic to properties if provided
-    if (responseTopic) {
-      options.properties.responseTopic = responseTopic;
-    }
-    if (responseTopicNoAwait) {
-      payload.responseTopicNoAwait = responseTopicNoAwait;
-    }
+      if (responseTopic) {
+        options.properties.responseTopic = responseTopic;
+      }
+      if (responseTopicNoAwait) {
+        payload.responseTopicNoAwait = responseTopicNoAwait;
+      }
 
-    if (typeof payload !== "string") {
-      payload = JSON.stringify(payload);
-    }
+      if (typeof payload !== "string") {
+        payload = JSON.stringify(payload);
+      }
 
-    // Listen for response
-    const responseListener = (responseTopic, correlationData) => {
-      const subscription = mqttClient.subscribe(responseTopic, (err) => {
-        if (!err) {
-          mqttClient.once("message", (topic, message, packet) => {
-            const receivedCorrelationData = packet.properties
-              ? packet.properties.correlationData.toString()
-              : null;
-            if (receivedCorrelationData === correlationData) {
-              resolve(message.toString());
-              mqttClient.unsubscribe(responseTopic);
-            }
-          });
-        } else {
+      mqttClient.publish(topic, payload, options, (err) => {
+        if (err) {
+          logger.error("Publish error", err);
           reject(err);
+        } else {
+          logger.info(`Message sent, 
+            ${topic},
+            ${payload},
+            ${JSON.stringify(options)},
+          
+          `);
+          if (responseTopic) {
+            responseListener(responseTopic, correlationData, resolve, reject);
+          } else {
+            resolve();
+          }
         }
       });
-    };
-
-    mqttClient.publish(topic, payload, options, (err) => {
-      if (err) {
-        console.error("Publish error:", err);
-        reject(err);
-      } else {
-        console.log("Message sent:", topic, payload, options.properties);
-        if (responseTopic) {
-          responseListener(responseTopic, correlationData);
-        }
-      }
-    });
+    } catch (e) {
+      logger.error("Error sending MQTT message", e);
+      reject(e);
+    }
   });
 }
 
-// Setup SignalR connection
 async function setupSignalRConnection(token, responseTopic, correlationData) {
-  const baseUrlWithToken = `${config.baseUrl}/apollo-hub?access-token=${token}`;
-  signalRConnection = new HubConnectionBuilder()
-    .withUrl(baseUrlWithToken)
-    .withAutomaticReconnect()
-    .configureLogging(LogLevel.Information)
-    .build();
-
   try {
+    const baseUrlWithToken = `${config.baseUrl}/apollo-hub?access-token=${token}`;
+    signalRConnection = new HubConnectionBuilder()
+      .withUrl(baseUrlWithToken)
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Information)
+      .build();
+
     await signalRConnection.start();
+    logger.info("Connected to SignalR");
     if (signalRConnection.state === "Connected") {
       const msg = { success: true, result: "Connected to SignalR" };
       sendMqttMessage(responseTopic, msg, correlationData);
     }
   } catch (err) {
-    console.error("SignalR connection error:", err);
-    // setTimeout(
-    //   () => setupSignalRConnection(token, responseTopic, correlationData),
-    //   5000
-    // ); // Retry connection
+    logger.error("SignalR connection error", err);
   }
 
   signalRConnection.onclose(async () => {
-    console.log("SignalR connection lost. Attempting to reconnect...");
+    logger.warn("SignalR connection lost. Attempting to reconnect...");
     await setupSignalRConnection(token, responseTopic, correlationData);
   });
 
-  // Handle server-sent events named "Request"
   signalRConnection.on("Request", async (data) => {
-    console.log("Received data from server on 'Request':", data);
+    logger.info(`Received data from server on 'Request': ${data}`);
     if (data.hasResult) {
       try {
         const response = await sendMqttMessage(
@@ -208,11 +546,10 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
           "80",
           config.kubakToNodeResponse
         );
-        console.log("Sending Response back to SignalR: "+ JSON.parse(response));
+        logger.info(`Sending Response back to SignalR`);
         return JSON.parse(response);
-        
       } catch (error) {
-        console.log(error);
+        logger.error("Error processing 'Request' from SignalR", error);
         return {
           success: false,
           error: { code: "0101", message: "mqtt error" },
@@ -224,62 +561,77 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
           config.kubakToNodeRequest,
           data,
           "80",
-          (responseTopic = null),
-          (responseTopicNoAwait = config.kubakToNodeResponseNoAwait)
+          null,
+          config.kubakToNodeResponseNoAwait
         );
-
-        // Here you can further process the response if needed or send it back to SignalR
-        // For now, let's just log the response
       } catch (error) {
-        console.log(error);
+        logger.error(
+          "Error sending MQTT message for 'Request' from SignalR",
+          error
+        );
       }
     }
   });
 }
 
-// Async function to invoke a method on SignalR and handle the response
 async function invokeSignalRMethod(msg, responseTopic, correlationData) {
-  if (signalRConnection && signalRConnection.state === "Connected") {
-    try {
-      parsedMsg = JSON.parse(msg);
-      methodName = parsedMsg.command;
-      methodArgs = parsedMsg.data;
+  try {
+    if (signalRConnection && signalRConnection.state === "Connected") {
+      const parsedMsg = JSON.parse(msg);
+      const methodName = parsedMsg.command;
+      const methodArgs = parsedMsg.data;
+
       const response = await signalRConnection.invoke(methodName, methodArgs);
-      payload = response;
-      console.log(`Response from ${methodName}:`, response);
+      logger.info(`Response from ${methodName}: ${response}`);
 
-      sendMqttMessage(responseTopic, payload, correlationData);
-    } catch (error) {
-      console.error(`Error invoking ${methodName} on SignalR:`, error);
-      // Optionally handle or rethrow the error based on your use case
-
-      // Construct a meaningful error message
-      const errorMsg = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack, // Optionally include the stack trace if useful
-      };
-
-      payload = { success: false, error: errorMsg };
-      sendMqttMessage(responseTopic, payload, correlationData);
+      sendMqttMessage(responseTopic, response, correlationData);
+    } else {
+      logger.warn("SignalR is not connected. Sending ready message.");
+      const msg = { success: true, result: "ready" };
+      sendMqttMessage(config.apolloAdminReady, msg);
     }
-  } else {
-    console.log("SignalR is not connected. Sending ready message.");
-    const msg = { success: true, result: "ready" };
-    sendMqttMessage(config.apolloAdminReady, msg);
+  } catch (error) {
+    logger.error(`Error invoking method on SignalR`, error);
+    const errorMsg = {
+      success: false,
+      error: { name: error.name, message: error.message, stack: error.stack },
+    };
+    sendMqttMessage(responseTopic, errorMsg, correlationData);
   }
 }
 
-// MQTT reconnect and error handling
+function responseListener(responseTopic, correlationData, resolve, reject) {
+  try {
+    mqttClient.subscribe(responseTopic, (err) => {
+      if (err) {
+        logger.error("Subscribe error", err);
+        reject(err);
+      } else {
+        mqttClient.once("message", (topic, message, packet) => {
+          const receivedCorrelationData = packet.properties
+            ? packet.properties.correlationData.toString()
+            : null;
+          if (receivedCorrelationData === correlationData) {
+            mqttClient.unsubscribe(responseTopic);
+            resolve(message.toString());
+          }
+        });
+      }
+    });
+  } catch (e) {
+    logger.error("Error in responseListener", e);
+    reject(e);
+  }
+}
+
 mqttClient.on("reconnect", () => {
-  console.log("Reconnecting to MQTT...");
+  logger.warn("Reconnecting to MQTT...");
 });
 
 mqttClient.on("error", (err) => {
-  console.log("MQTT Error:", err);
+  logger.error("MQTT Error", err);
 });
 
-// Exit gracefully
 process.on("SIGINT", async () => {
   if (mqttClient) {
     mqttClient.end();
@@ -287,18 +639,16 @@ process.on("SIGINT", async () => {
   if (signalRConnection) {
     await signalRConnection.stop();
   }
-  console.log("Gracefully shutting down...");
+  logger.info("Gracefully shutting down...");
   process.exit(0);
 });
 
-// Periodic check to ensure SignalR connection is active
 setInterval(async () => {
   if (!signalRConnection || signalRConnection.state !== "Connected") {
-    console.log("SignalR connection is not active. Attempting to reconnect...");
-    // Attempt to reconnect or handle the logic as required; example uses a simple message send
+    logger.warn("SignalR connection is not active. Attempting to reconnect...");
     const msg = { success: true, result: "ready" };
     sendMqttMessage(config.apolloAdminReady, msg);
   } else {
-    console.log("SignalR connection is active and healthy.");
+    logger.info("SignalR connection is active and healthy.");
   }
-}, 600000); // 600000 milliseconds = 10 minutes
+}, 600000); // 10 minutes
