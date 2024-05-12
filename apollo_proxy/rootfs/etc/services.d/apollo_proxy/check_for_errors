@@ -5,7 +5,7 @@ declare -a error_strings=("unable to register tcp forward" "eof" "connection res
 
 while IFS= read -r line; do
   echo "$line"  # Log line for s6-log or other mechanisms
-  local lowercase_line=$(echo "$line" | tr '[:upper:]' '[:lower:]')
+  lowercase_line=$(echo "$line" | tr '[:upper:]' '[:lower:]')
 
   for error in "${error_strings[@]}"; do
     if [[ "$lowercase_line" == *"$error"* ]]; then
