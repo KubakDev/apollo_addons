@@ -10,7 +10,8 @@ while IFS= read -r line; do
   for error in "${error_strings[@]}"; do
     if [[ "$lowercase_line" == *"$error"* ]]; then
       echo "Detected critical error, exiting..."
-    #   s6-svscanctl -t /var/run/s6/services  # Terminate the scan service tree
+      echo "${257}" > /run/s6-linux-init-container-results/exitcode
+      exec /run/s6/basedir/bin/halt
       exit 256
     fi
   done

@@ -1,6 +1,6 @@
 name: "Apollo Proxy"
 description: "Efficient proxy client"
-version: "1.2.5.9.3"
+version: "1.2.5.9.4"
 
 slug: "apollo_proxy"
 url: https://github.com/KubakDev/apollo_addons/tree/main/apollo_proxy
