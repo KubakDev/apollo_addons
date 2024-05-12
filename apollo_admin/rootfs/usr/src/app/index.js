@@ -1,7 +1,7 @@
 const mqtt = require("mqtt");
 const fs = require("fs");
 const yaml = require("js-yaml");
-const { HubConnectionBuilder, LogLevel } = require("@microsoft/signalr");
+const { HubConnectionBuilder, LogLevel, JsonHubProtocol } = require("@microsoft/signalr");
 
 const config = loadConfig();
 
@@ -186,10 +186,10 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
     }
   } catch (err) {
     console.error("SignalR connection error:", err);
-    setTimeout(
-      () => setupSignalRConnection(token, responseTopic, correlationData),
-      5000
-    ); // Retry connection
+    // setTimeout(
+    //   () => setupSignalRConnection(token, responseTopic, correlationData),
+    //   5000
+    // ); // Retry connection
   }
 
   signalRConnection.onclose(async () => {
@@ -208,9 +208,9 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
           "80",
           config.kubakToNodeResponse
         );
+        console.log("Sending Response back to SignalR: "+ JSON.parse(response));
         return JSON.parse(response);
-        // Here you can further process the response if needed or send it back to SignalR
-        // For now, let's just log the response
+        
       } catch (error) {
         console.log(error);
         return {
