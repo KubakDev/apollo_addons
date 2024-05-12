@@ -18,4 +18,5 @@ COPY rootfs /
 
 RUN chmod a+x /etc/services.d/apollo_proxy/run
 RUN chmod a+x /etc/services.d/apollo_proxy/finish
+RUN chmod a+x /etc/services.d/apollo_proxy/check_for_errors
 RUN chmod +x /usr/bin/boringproxy
