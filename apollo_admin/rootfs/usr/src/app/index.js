@@ -255,8 +255,10 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
           "80",
           config.kubakToNodeResponse
         );
-        logger.info(`Sending Response back to SignalR`);
+
+        logger.info(`Sending Response back to SignalR: ${response}`);
         return JSON.parse(response);
+        
       } catch (error) {
         logger.error("Error processing 'Request' from SignalR", error);
         return {
