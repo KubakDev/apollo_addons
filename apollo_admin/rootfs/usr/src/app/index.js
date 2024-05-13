@@ -240,7 +240,8 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
       logger.warn(
         "SignalR connection closed due to an error. Attempting to reconnect..."
       );
-      await setupSignalRConnection(token, responseTopic, correlationData);
+      const msg = { success: true, result: "ready" };
+      sendMqttMessage(config.apolloAdminReady, msg);
     }
   });
 
@@ -302,7 +303,7 @@ async function invokeSignalRMethod(msg, responseTopic, correlationData) {
     logger.error(`Error invoking method on SignalR`, error);
     const errorMsg = {
       success: false,
-      error: { name: error.name, message: error.message, stack: error.stack },
+      error: { name: error.name, message: error.message },
     };
     sendMqttMessage(responseTopic, errorMsg, correlationData);
   }
