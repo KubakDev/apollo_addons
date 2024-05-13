@@ -114,8 +114,8 @@ mqttClient.on("message", async (topic, message, packet) => {
         if (responseTopic && correlationData) {
           invokeSignalRMethod(msg, responseTopic, correlationData);
         } else {
-            logger.warn(
-              `Missing responseTopic or correlationData; cannot continue.
+          logger.warn(
+            `Missing responseTopic or correlationData; cannot continue.
               ${topic}`
           );
         }
@@ -226,9 +226,22 @@ async function setupSignalRConnection(token, responseTopic, correlationData) {
     logger.error("SignalR connection error", err);
   }
 
-  signalRConnection.onclose(async () => {
-    logger.warn("SignalR connection lost. Attempting to reconnect...");
-    await setupSignalRConnection(token, responseTopic, correlationData);
+  signalRConnection.onclose(async (error) => {
+    logger.error(`SignalR connection lost: ${error}`);
+
+    // Check if the error is related to authentication (token expiration)
+    if (error && isTokenExpiredError(error)) {
+      logger.info(
+        "Attempting to reconnect with a new token due to token expiration..."
+      );
+      const msg = { success: true, result: "ready" };
+      sendMqttMessage(config.apolloAdminReady, msg);
+    } else {
+      logger.warn(
+        "SignalR connection closed due to an error. Attempting to reconnect..."
+      );
+      await setupSignalRConnection(token, responseTopic, correlationData);
+    }
   });
 
   signalRConnection.on("Request", async (data) => {
@@ -327,6 +340,15 @@ mqttClient.on("error", (err) => {
   logger.error("MQTT Error", err);
 });
 
+// Function to determine if the error is due to token expiration
+function isTokenExpiredError(error) {
+  // Implement logic to determine if the error indicates a token expiration
+  // This might include checking error messages or types depending on how your server communicates token expiration
+  return (
+    error && (error.message.includes("401") || error.message.includes("token"))
+  );
+}
+
 process.on("SIGINT", async () => {
   if (mqttClient) {
     mqttClient.end();
@@ -338,12 +360,12 @@ process.on("SIGINT", async () => {
   process.exit(0);
 });
 
-setInterval(async () => {
-  if (!signalRConnection || signalRConnection.state !== "Connected") {
-    logger.warn("SignalR connection is not active. Attempting to reconnect...");
-    const msg = { success: true, result: "ready" };
-    sendMqttMessage(config.apolloAdminReady, msg);
-  } else {
-    logger.info("SignalR connection is active and healthy.");
-  }
-}, 600000); // 10 minutes
+// setInterval(async () => {
+//   if (!signalRConnection || signalRConnection.state !== "Connected") {
+//     logger.warn("SignalR connection is not active. Attempting to reconnect...");
+//     const msg = { success: true, result: "ready" };
+//     sendMqttMessage(config.apolloAdminReady, msg);
+//   } else {
+//     logger.info("SignalR connection is active and healthy.");
+//   }
+// }, 600000); // 10 minutes
