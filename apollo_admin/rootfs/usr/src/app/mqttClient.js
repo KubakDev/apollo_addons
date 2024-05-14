@@ -26,13 +26,14 @@ mqttClient.on("error", (err) => {
   logger.error("MQTT Error", err);
 });
 
-function sendMqttMessage(
+async function sendMqttMessage(
   topic,
   payload,
   correlationData = "1",
   responseTopic,
   responseTopicNoAwait
 ) {
+  
   return new Promise((resolve, reject) => {
     try {
       const options = {
