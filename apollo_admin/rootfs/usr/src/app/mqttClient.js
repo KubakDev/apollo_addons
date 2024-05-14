@@ -26,21 +26,79 @@ mqttClient.on("error", (err) => {
   logger.error("MQTT Error", err);
 });
 
-function sendMqttMessage(topic, payload, options = {}) {
+function sendMqttMessage(
+  topic,
+  payload,
+  correlationData = "1",
+  responseTopic,
+  responseTopicNoAwait
+) {
   return new Promise((resolve, reject) => {
-    if (typeof payload !== "string") {
-      payload = JSON.stringify(payload);
+    try {
+      const options = {
+        properties: {
+          correlationData: Buffer.from(correlationData),
+        },
+      };
+
+      if (responseTopic) {
+        options.properties.responseTopic = responseTopic;
+      }
+      if (responseTopicNoAwait) {
+        payload.responseTopicNoAwait = responseTopicNoAwait;
+      }
+
+      if (typeof payload !== "string") {
+        payload = JSON.stringify(payload);
+      }
+
+      mqttClient.publish(topic, payload, options, (err) => {
+        if (err) {
+          logger.error("Publish error", err);
+          reject(err);
+        } else {
+          logger.info(`Message sent, 
+            ${topic},
+            ${payload},
+            ${JSON.stringify(options)},
+          
+          `);
+          if (responseTopic) {
+            responseListener(responseTopic, correlationData, resolve, reject);
+          } else {
+            resolve();
+          }
+        }
+      });
+    } catch (e) {
+      logger.error("Error sending MQTT message", e);
+      reject(e);
     }
-    mqttClient.publish(topic, payload, options, (err) => {
+  });
+}
+
+function responseListener(responseTopic, correlationData, resolve, reject) {
+  try {
+    mqttClient.subscribe(responseTopic, (err) => {
       if (err) {
-        logger.error("Publish error", err);
+        logger.error("Subscribe error", err);
         reject(err);
       } else {
-        logger.info(`Message sent to ${topic}`);
-        resolve();
+        mqttClient.once("message", (responseTopic, message, packet) => {
+          const receivedCorrelationData = packet.properties
+            ? packet.properties.correlationData.toString()
+            : null;
+          if (receivedCorrelationData === correlationData) {
+            mqttClient.unsubscribe(responseTopic);
+            resolve(message.toString());
+          }
+        });
       }
     });
-  });
+  } catch (e) {
+    logger.error("Error in responseListener", e);
+    reject(e);
+  }
 }
 
 module.exports = {

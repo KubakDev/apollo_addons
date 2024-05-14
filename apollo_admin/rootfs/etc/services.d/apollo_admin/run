@@ -16,4 +16,4 @@
 # bashio::log.info "Starting Node.js application with message: ${message:=Hello World...}"
 
 # Execute your Node.js program, replace `app.js` with your actual main file if different
-exec node /usr/src/app/index.js
+exec node /usr/src/app/app.js

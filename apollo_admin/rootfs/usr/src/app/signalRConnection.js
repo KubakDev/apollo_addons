@@ -4,35 +4,40 @@ const { loadConfig } = require("./configManager");
 
 const config = loadConfig();
 
-let signalRConnection;
+let signalR;
 
-async function setupSignalRConnection(token) {
+async function signalRConnection(token) {
+  
   try {
     const baseUrlWithToken = `${config.baseUrl}/apollo-hub?access-token=${token}`;
-    signalRConnection = new HubConnectionBuilder()
+    signalR = new HubConnectionBuilder()
       .withUrl(baseUrlWithToken)
-      .withAutomaticReconnect()
+      // .withAutomaticReconnect()
       .configureLogging(LogLevel.Warning)
       .build();
 
-    await signalRConnection.start();
+      
+    await signalR.start();
     logger.info("Connected to SignalR");
-    signalRConnection.onclose(() => {
-      logger.warn("SignalR connection lost. Attempting to reconnect...");
-      setupSignalRConnection(token);
-    });
-    return signalRConnection;
+    // signalRConnection.onclose(() => {
+      // logger.warn("SignalR connection lost. Attempting to reconnect...");
+      // setupSignalRConnection(token);
+    // });
+    
+    return signalR;
   } catch (err) {
     logger.error("SignalR connection error", err);
-    throw err;
+    
+    throw err
+    
   }
 }
 
-function invokeSignalRMethod(methodName, methodArgs) {
-  return signalRConnection.invoke(methodName, methodArgs);
+async function invokeSignalR(methodName, methodArgs) {
+  return await signalR.invoke(methodName, methodArgs);
 }
 
 module.exports = {
-  setupSignalRConnection,
-  invokeSignalRMethod,
+  signalRConnection,
+  invokeSignalR,
 };
