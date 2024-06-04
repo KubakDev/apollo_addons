@@ -127,14 +127,14 @@ async function handleSignalRRequest(data) {
     }
   } else {
     try {
-      const response = await sendMqttMessage(
+      sendMqttMessage(
         config.kubakToNodeRequest,
         data,
         "80",
         null,
         config.kubakToNodeResponseNoAwait
       );
-      logger.info(`Success sending message with hasResult:false: ${response}`);
+      logger.info(`sending: result: null, success: true `);
       return { result: null, success: true };
     } catch (error) {
       logger.error(
