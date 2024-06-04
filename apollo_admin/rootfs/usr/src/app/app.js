@@ -135,7 +135,7 @@ async function handleSignalRRequest(data) {
         config.kubakToNodeResponseNoAwait
       );
       logger.info(`Success sending message with hasResult:false: ${response}`);
-      return { result: null, error: null, success: true };
+      return { result: null, success: true };
     } catch (error) {
       logger.error(
         "Error sending MQTT message for 'Request' from SignalR",
