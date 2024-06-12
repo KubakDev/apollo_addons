@@ -2,7 +2,7 @@
 name: Houstin
 version: "1.0.0"
 slug: Houstin
-description: testing
+description: "Houstin is a Home Assistant add-on that allows you to manage Home Assistant instance from Apollo."
 url: "https://github.com/KubakDev/apollo_addons/tree/main/houstin"
 host_network: true
 arch:
