@@ -16,8 +16,6 @@ _Yo._
 
 
 
-```markdown
-
 
 Welcome to the Home Assistant Apollo Integration! This guide will walk you through the setup process to ensure your integration runs smoothly.
 
