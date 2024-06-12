@@ -1,5 +1,8 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 1.1.1.5
+- This app is deprecated, use houstin
+
 ## 1.2.0
 
 - Add an apparmor profile

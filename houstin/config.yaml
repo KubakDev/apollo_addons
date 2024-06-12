@@ -1,0 +1,22 @@
+# # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
+name: Houstin
+version: "1.0.0"
+slug: Houstin
+description: testing
+url: "https://github.com/KubakDev/apollo_addons/tree/main/houstin"
+host_network: true
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+init: false
+hassio_api: true
+homeassistant_api: true
+hassio_role: admin
+
+
+map:
+  - addon_config:rw
+  - homeassistant_config:rw

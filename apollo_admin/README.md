@@ -1,4 +1,5 @@
 # Apollo Addon: Signalr to MQTT Kubak
+(DEPRECATED)
 
 _Yo._
 

@@ -1,3 +1,5 @@
 apollo_addons.code-workspace
 apollo_admin/rootfs/usr/src/app/node_modules
 apollo_admin/rootfs/usr/src/app/config.json
+houstin/node_modules
+houstin/build

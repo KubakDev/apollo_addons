@@ -1,0 +1,23 @@
+{
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@microsoft/signalr": "^8.0.0",
+    "axios": "^1.6.8",
+    "dotenv": "^16.4.5",
+    "jwt-decode": "^4.0.0",
+    "sqlite3": "^5.1.7",
+    "ts-node": "^10.9.2",
+    "typeorm": "^0.3.20",
+    "ws": "^8.17.0",
+    "yaml": "^2.4.2"
+  },
+  "scripts": {
+    "dev": "ts-node src/app.ts",
+    "prod": "npm run build && node build/app.js",
+    "build": "tsc"
+  }
+}
