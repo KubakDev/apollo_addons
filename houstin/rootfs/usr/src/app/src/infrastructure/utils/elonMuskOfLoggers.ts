@@ -54,21 +54,23 @@ class ElonMuskOfLoggers {
       transports: [
         new transports.Console({ format: consoleFormat }),
         new DailyRotateFile({
-          filename: 'logs/application-%DATE%.log',
+          filename: '/homeassistant/logs/houstin-%DATE%.log',
           datePattern: 'YYYY-MM-DD',
           zippedArchive: true,
           maxSize: '20m',
           maxFiles: '14d',
           format: fileFormat
-        }),
-        new HttpTransport({
-          level: 'warn',
-          url: 'https://your-monitoring-service/logs',
-          format: httpFormat
         })
+        // ,
+        // new HttpTransport({
+        //   level: 'warn',
+        //   url: 'https://your-monitoring-service/logs',
+        //   format: httpFormat
+        // })
       ],
     });
 
+    console.log("node_env: ", process.env.NODE_ENV)
     if (process.env.NODE_ENV === 'production') {
       this.ElonMuskOfLoggers.level = 'warn';
     } else if (process.env.NODE_ENV === 'development') {
