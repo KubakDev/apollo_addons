@@ -91,6 +91,7 @@ class SupervisorSocket {
   private handleClose(code: number, reason: string) {
     console.log(`Supervisor Socket Closed - Code: ${code}, Reason: ${reason}`);
     this.socket = null;
+    this.startConnection();
     // Implement reconnection logic here if needed
   }
 
