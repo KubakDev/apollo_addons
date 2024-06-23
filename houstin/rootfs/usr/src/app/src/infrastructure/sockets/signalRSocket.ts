@@ -90,7 +90,7 @@ class SignalRSocket extends EventEmitter {
 
       await this.connection.start();
       // console.log("SignalR connection started");
-      Elon.info("SignalR connection started");
+      Elon.warn("SignalR connection started");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {
