@@ -5,6 +5,7 @@ import {
   formatErrorResponse,
   formatSuccessResponse,
 } from "../infrastructure/utils/formatResponse";
+import Elon from "../infrastructure/utils/elonMuskOfLoggers";
 
 export async function delete_user(username: string): Promise<internalResponse> {
   try {
@@ -12,14 +13,15 @@ export async function delete_user(username: string): Promise<internalResponse> {
     let response1 = await supervisorSocket.sendMessage<supervisorResponse>(
       configAuthList
     );
-    console.log("response1", response1);
+    // console.log("response1", response1);
+
     if (!response1.success || response1.type !== "result") {
       throw Error(response1.error);
     }
 
     let userId: string | undefined;
     response1.result.forEach((user: { name: string; id: string }) => {
-      console.log(user.name);
+      // console.log(user.name);
       if (user.name === username) {
         userId = user.id;
       }
@@ -36,9 +38,9 @@ export async function delete_user(username: string): Promise<internalResponse> {
       personDelete
     );
 
-    console.log("response2", response2);
+    // console.log("response2", response2);
     if (!response2.success) {
-      console.log("ee wtf",response2.error);
+      // console.log("ee wtf",response2.error);
       
       throw Error(response2.error);
     }
@@ -50,15 +52,17 @@ export async function delete_user(username: string): Promise<internalResponse> {
     let response3 = await supervisorSocket.sendMessage<supervisorResponse>(
       configAuthDelete
     );
-    console.log("response3", response3);
+    // console.log("response3", response3);
     if (!response3.success) {
       throw Error(response3.error);
     } else {
-      console.log("User deleted successfully", response3);
+      // console.log("User deleted successfully", response3);
+      Elon.warn("User deleted successfully", response3);
       return formatSuccessResponse(null);
     }
   } catch (error: any) {
-    console.error("whahahaha", error.message);
+    Elon.error("Error in delete_user", error);
+  
     return formatErrorResponse(error.message, "-0");
   }
 }

@@ -1,5 +1,6 @@
 import signalRSocket from "../infrastructure/sockets/signalRSocket";
 import { SignalRResponse } from "../infrastructure/sockets/signalRSocket";
+import Elon from "../infrastructure/utils/elonMuskOfLoggers";
 export async function setupApollo(
   macAddress: string,
   adminToken: string
@@ -7,7 +8,8 @@ export async function setupApollo(
   const isConnected = await signalRSocket.waitForConnection();
   if (isConnected) {
     // Now we can safely invoke methods on the SignalR connection
-    console.log("SignalR connection is ready:");
+    // console.log("SignalR connection is ready:");
+    Elon.info("SignalR connection is ready:");
   } else {
     throw new Error("SignalR connection could not be established");
   }
@@ -20,7 +22,8 @@ export async function setupApollo(
   if (!response.success) {
     throw Error(`Error in setupApollo: ${response.error.message}`);
   } else {
-    console.log("Apollo setup successful");
+    // console.log("Apollo setup successful");
+    Elon.info("Apollo setup successful");
     return true;
   }
 

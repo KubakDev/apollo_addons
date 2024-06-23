@@ -3,9 +3,11 @@ import OnDemandSocket from "../infrastructure/sockets/onDemandSocket";
 import { supervisorResponse } from "../infrastructure/utils/interfaces";
 import { internalResponse } from "../infrastructure/utils/interfaces";
 
-import { formatSuccessResponse,formatErrorResponse } from "../infrastructure/utils/formatResponse";
-
-
+import {
+  formatSuccessResponse,
+  formatErrorResponse,
+} from "../infrastructure/utils/formatResponse";
+import Elon from "../infrastructure/utils/elonMuskOfLoggers";
 
 function getTokenId(
   data: any,
@@ -54,14 +56,17 @@ export async function getLongLiveAccessToken(
       );
 
       onDemandSocket.closeConnection();
-      
-      return formatSuccessResponse({token:result.result})
 
+      return formatSuccessResponse({ token: result.result });
     } else {
       throw new Error("OnDemand connection could not be established");
     }
-  } catch (error:any) {
-    console.error(
+  } catch (error: any) {
+    // console.error(
+    //   "An error occurred during the Long Live Acess Token process:",
+    //   error
+    // );
+    Elon.error(
       "An error occurred during the Long Live Acess Token process:",
       error
     );

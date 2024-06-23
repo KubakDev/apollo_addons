@@ -104,7 +104,7 @@ class ElonMuskOfLoggers {
    * @param message - The log message.
    * @param context - Optional context to include with the log message.
    */
-  public info(message: string, context?: string): void {
+  public info(message: string, context?: any): void {
     this.ElonMuskOfLoggers.info(message, { context });
   }
 
@@ -113,7 +113,7 @@ class ElonMuskOfLoggers {
    * @param message - The log message.
    * @param context - Optional context to include with the log message.
    */
-  public warn(message: string, context?: string): void {
+  public warn(message: string, context?: any): void {
     this.ElonMuskOfLoggers.warn(message, { context });
   }
 

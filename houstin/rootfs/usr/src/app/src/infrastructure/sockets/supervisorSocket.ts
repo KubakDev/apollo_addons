@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import config from "../utils/config/configLoader";
 import Completer from "../utils/completer";
 import { supervisorResponse } from "../utils/interfaces";
+import Elon from "../utils/elonMuskOfLoggers";
 
 
 class SupervisorSocket {
@@ -14,7 +15,9 @@ class SupervisorSocket {
   // Private constructor to prevent instantiation
   private constructor() {
     this.startConnection().catch((error) => {
-      console.error("Failed to start WebSocket connection:", error);
+      // console.error("Failed to start WebSocket connection:", error);
+      Elon.error("Failed to start WebSocket connection:", error);
+      
     });
   }
 
@@ -30,7 +33,8 @@ class SupervisorSocket {
   private async startConnection(): Promise<void> {
     try {
       const socketUrl = new URL(this.supervisorConfig.supervisorSocketPath);
-      console.log(`Connecting to Supervisor at ${socketUrl.toString()}`);
+      // console.log(`Connecting to Supervisor at ${socketUrl.toString()}`);
+      Elon.info(`Connecting to Supervisor at ${socketUrl.toString()}`);
 
       return new Promise<void>((resolve, reject) => {
         this.socket = new WebSocket(socketUrl.toString());
@@ -43,14 +47,16 @@ class SupervisorSocket {
         );
       });
     } catch (error) {
-      console.error("Error during Supervisor Socket connection initialization:", error);
+      // console.error("Error during Supervisor Socket connection initialization:", error);
+      Elon.error("Error during Supervisor Socket connection initialization:", error);
       throw error;
     }
   }
 
   // Handles the opening of the WebSocket connection
   private handleOpen(resolve: () => void) {
-    console.log("Supervisor Socket Connection Opened");
+    // console.log("Supervisor Socket Connection Opened");
+    Elon.warn("Supervisor Socket Connection Opened");
     resolve();
   }
 
@@ -77,19 +83,22 @@ class SupervisorSocket {
           break;
       }
     } catch (error) {
-      console.error("Error handling Supervisor Socket message:", error);
+      // console.error("Error handling Supervisor Socket message:", error);
+      Elon.error("Error handling Supervisor Socket message:", error);
     }
   }
 
   // Handles errors from the WebSocket connection
   private handleError(error: Error, reject: (reason?: any) => void) {
-    console.error("Supervisor Socket Error:", error);
+    // console.error("Supervisor Socket Error:", error);
+    Elon.error("Supervisor Socket Error:", error);
     reject(error);
   }
 
   // Handles the closing of the WebSocket connection
   private handleClose(code: number, reason: string) {
-    console.log(`Supervisor Socket Closed - Code: ${code}, Reason: ${reason}`);
+    // console.log(`Supervisor Socket Closed - Code: ${code}, Reason: ${reason}`);
+    Elon.warn(`Supervisor Socket Closed - Code: ${code}, Reason: ${reason}`);
     this.socket = null;
     this.startConnection();
     // Implement reconnection logic here if needed
@@ -98,10 +107,12 @@ class SupervisorSocket {
   // Asynchronously closes the WebSocket connection, if it is open
   public async closeConnection(): Promise<void> {
     if (this.socket) {
-      console.log("Closing Supervisor Socket Connection");
+      // console.log("Closing Supervisor Socket Connection");
+      Elon.warn("Closing Supervisor Socket Connection");
       return new Promise<void>((resolve, reject) => {
         this.socket!.once("close", (code, reason) => {
-          console.log(`Connection closed - Code: ${code}, Reason: ${reason}`);
+          // console.log(`Connection closed - Code: ${code}, Reason: ${reason}`);
+          Elon.warn(`Connection closed - Code: ${code}, Reason: ${reason}`);
           resolve();
         });
         this.socket!.terminate();

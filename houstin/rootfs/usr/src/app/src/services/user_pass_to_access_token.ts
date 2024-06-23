@@ -2,6 +2,7 @@ import axios from "axios";
 import config from "../infrastructure/utils/config/configLoader";
 import { internalResponse } from "../infrastructure/utils/interfaces";
 import { formatErrorResponse, formatSuccessResponse } from "../infrastructure/utils/formatResponse";
+import Elon from "../infrastructure/utils/elonMuskOfLoggers";
 
 // Function to get access token
 export async function getAccessToken(
@@ -68,7 +69,11 @@ export async function getAccessToken(
     // Return the access token
     return formatSuccessResponse({accessToken: tokenResponse.data.access_token});
   } catch (error:any) {
-    console.error(
+    // console.error(
+    //   "An error occurred during the authentication process:",
+    //   error
+    // );
+    Elon.error(
       "An error occurred during the authentication process:",
       error
     );

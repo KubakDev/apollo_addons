@@ -1,5 +1,6 @@
 import supervisorSocket from "../infrastructure/sockets/supervisorSocket";
 import { supervisorResponse } from "../infrastructure/utils/interfaces";
+import Elon from "../infrastructure/utils/elonMuskOfLoggers";
 
 export async function getMAC(): Promise<string|null> {
     let ethernetMAC = null;
@@ -29,7 +30,8 @@ export async function getMAC(): Promise<string|null> {
       return ethernetMAC
     
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    Elon.error("Error getting MAC",error);
     
     return ethernetMAC;
   }

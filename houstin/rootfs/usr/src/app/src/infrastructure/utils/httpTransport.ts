@@ -1,5 +1,6 @@
 import TransportStream from 'winston-transport';
 import axios from 'axios';
+import Elon from './elonMuskOfLoggers';
 
 interface HttpTransportOptions extends TransportStream.TransportStreamOptions {
   url: string;
@@ -19,7 +20,8 @@ class HttpTransport extends TransportStream {
     axios.post(this.url, info)
       .then(() => callback())
       .catch((error: any) => {
-        console.error('Failed to send log:', error);
+        // console.error('Failed to send log:', error);
+        Elon.error('Failed to send log:', error);
         callback();
       });
   }

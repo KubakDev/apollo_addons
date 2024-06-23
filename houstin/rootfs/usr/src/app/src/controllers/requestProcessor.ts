@@ -11,6 +11,7 @@ import { getLongLiveAccessToken } from "../services/access_token_to_long_live_ac
 import { delete_user } from "../services/delete_user";
 import { Request, RequestDataUser, RequestDataUserDelete, RequestDataUserWithoutRoleType, internalResponse } from "../infrastructure/utils/interfaces";
 import { getRequestProcessor, postRequestProcessor } from "./getAndPostRequestProcessor";
+import Elon from "../infrastructure/utils/elonMuskOfLoggers";
 
 
 class RequestProcessor {
@@ -32,7 +33,9 @@ class RequestProcessor {
 
   // Method to process the request
   private async processRequest(request: Request): Promise<internalResponse> {
-    console.log("Processing request:", request);
+    // console.log("Processing request:", request);
+    Elon.info("Processing request:", request);
+
     
     try {
       
@@ -107,19 +110,22 @@ class RequestProcessor {
 
   private async processPostRequest(request: Request): Promise<internalResponse> {
     // Implement your actual POST request processing logic here
-    console.log("Processing POST request:", request);
+    // console.log("Processing POST request:", request);
+    Elon.info("Processing POST request:", request);
     return await postRequestProcessor(request);
   }
 
   private async processGetRequest(request: Request): Promise<internalResponse> {
     // Implement your actual GET request processing logic here
-    console.log("Processing GET request:", request);
+    // console.log("Processing GET request:", request);
+    Elon.info("Processing GET request:", request);
     return await getRequestProcessor(request);
   }
 
   private async processCreateUserRequest(request: Request): Promise<internalResponse> {
     // Implement your actual create_user request processing logic here
-    console.log("Processing create_user request:", request);
+    // console.log("Processing create_user request:", request);
+    Elon.info("Processing create_user request:", request);
     const { username, password, roleType } = request.data as RequestDataUser;
 
     try {
@@ -168,7 +174,8 @@ class RequestProcessor {
 
   private async processUpdateTokenRequest(request: Request): Promise<internalResponse> {
     // Implement your actual update_token request processing logic here
-    console.log("Processing update_token request:", request);
+    // console.log("Processing update_token request:", request);
+    Elon.info("Processing update_token request:", request);
 
     const { username, password } = request.data as RequestDataUserWithoutRoleType;
 

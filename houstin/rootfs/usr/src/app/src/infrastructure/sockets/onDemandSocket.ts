@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import config from "../utils/config/configLoader";
 import Completer from "../utils/completer";
+import Elon from "../utils/elonMuskOfLoggers";
 
 class OnDemandSocket {
   private socket: WebSocket | null = null;
@@ -15,7 +16,8 @@ class OnDemandSocket {
     }
     this.accessToken = access_token;
     this.startConnection().catch((error) => {
-      console.error("Failed to start WebSocket connection:", error);
+      // console.error("Failed to start WebSocket connection:", error);
+      Elon.error("Failed to start WebSocket connection:", error);
     });
   }
 
@@ -26,7 +28,8 @@ class OnDemandSocket {
   async startConnection(): Promise<void> {
     try {
       const socketUrl = new URL(this.onDemandConfig.onDemandSocketPath);
-      console.log(`Connecting to onDemand Socket at ${socketUrl.toString()}`);
+      // console.log(`Connecting to onDemand Socket at ${socketUrl.toString()}`);
+      Elon.info(`Connecting to onDemand Socket at ${socketUrl.toString()}`);
 
       return new Promise<void>((resolve, reject) => {
         this.socket = new WebSocket(socketUrl.toString());
@@ -39,7 +42,8 @@ class OnDemandSocket {
         );
       });
     } catch (error) {
-      console.error("Error during WebSocket connection initialization:", error);
+      // console.error("Error during WebSocket connection initialization:", error);
+      Elon.error("Error during WebSocket connection initialization:", error);
       throw error;
     }
   }
@@ -49,7 +53,8 @@ class OnDemandSocket {
    * @param resolve - The resolve function of the Promise.
    */
   private handleOpen(resolve: () => void) {
-    console.log("onDemand Socket Connection Opened");
+    // console.log("onDemand Socket Connection Opened");
+    Elon.warn("onDemand Socket Connection Opened");
     resolve();
   }
 
@@ -79,7 +84,8 @@ class OnDemandSocket {
           break;
       }
     } catch (error) {
-      console.error("Error handling WebSocket message:", error);
+      // console.error("Error handling WebSocket message:", error);
+      Elon.error("Error handling WebSocket message:", error);
     }
   }
 
@@ -89,7 +95,8 @@ class OnDemandSocket {
    * @param reject - The reject function of the Promise.
    */
   private handleError(error: Error, reject: (reason?: any) => void) {
-    console.error("onDemand Socket Error:", error);
+    // console.error("onDemand Socket Error:", error);
+    Elon.error("onDemand Socket Error:", error);
     reject(error);
   }
 
@@ -99,7 +106,8 @@ class OnDemandSocket {
    * @param reason - The reason for the closure.
    */
   private handleClose(code: number, reason: string) {
-    console.log(`onDemand Socket Closed - Code: ${code}, Reason: ${reason}`);
+    // console.log(`onDemand Socket Closed - Code: ${code}, Reason: ${reason}`);
+    Elon.warn(`onDemand Socket Closed - Code: ${code}, Reason: ${reason}`);
     this.socket = null;
     // Implement reconnection logic here if needed
   }
@@ -110,10 +118,14 @@ class OnDemandSocket {
    */
   async closeConnection(): Promise<void> {
     if (this.socket) {
-      console.log("Closing onDemand Socket Connection");
+      // console.log("Closing onDemand Socket Connection");
+      Elon.warn("Closing onDemand Socket Connection");
       return new Promise<void>((resolve, reject) => {
         this.socket!.once("close", (code, reason) => {
-          console.log(
+          // console.log(
+          //   `onDemand Connection closed - Code: ${code}, Reason: ${reason}`
+          // );
+          Elon.warn(
             `onDemand Connection closed - Code: ${code}, Reason: ${reason}`
           );
           resolve();

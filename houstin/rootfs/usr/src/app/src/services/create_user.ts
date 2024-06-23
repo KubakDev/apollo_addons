@@ -2,7 +2,7 @@ import supervisorSocket from "../infrastructure/sockets/supervisorSocket";
 import {supervisorResponse} from "../infrastructure/utils/interfaces";
 import { internalResponse } from "../infrastructure/utils/interfaces";
 import { formatSuccessResponse, formatErrorResponse } from "../infrastructure/utils/formatResponse";
-
+import Elon from "../infrastructure/utils/elonMuskOfLoggers";
 
 export async function create_user(
   username: string,
@@ -58,11 +58,13 @@ export async function create_user(
         if (!response.success) {
             throw Error(response.error);
           }
-          console.log("User created successfully", response);
+          // console.log("User created successfully", response);
+          Elon.info("User created successfully", response);
 
     return formatSuccessResponse(null);
   } catch (error: any) {
-    console.error("An error occurred during the user creation process:", error);
+    // console.error("An error occurred during the user creation process:", error);
+    Elon.error("An error occurred during the user creation process:", error);
     return formatErrorResponse(error.message,"-1")
   }
 }
