@@ -1,6 +1,6 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
+import { HubConnection, HubConnectionBuilder,ILogger } from "@microsoft/signalr";
 import { EventEmitter } from "events";
 import config from "../utils/config/configLoader";
 import TokenDB from "../db/tokenDB";
@@ -8,6 +8,7 @@ import { TokenState } from "../db/tokenDB";
 import Completer from "../utils/completer";
 import { formatSuccessResponse, formatErrorResponse } from "../utils/formatResponse";
 import Elon from "../utils/elonMuskOfLoggers";
+
 
 interface JwtPayload {
   exp: number;
@@ -22,11 +23,17 @@ class SignalRSocket extends EventEmitter {
   private static instance: SignalRSocket;
   private connection: HubConnection | null = null;
   private tokenDB = new TokenDB<TokenState>();
+  private logLevel = 6;
 
   // Private constructor to prevent instantiation
   private constructor() {
     super();
     this.initConnection();
+    if (process.env.NODE_ENV === 'production') {
+      this.logLevel = 3;
+    } else if (process.env.NODE_ENV === 'development') {
+      this.logLevel = 1;
+    }
   }
 
   // Method to get the singleton instance
@@ -70,9 +77,10 @@ class SignalRSocket extends EventEmitter {
       // console.log("Connecting to SignalR at", baseUrlWithToken);
       Elon.info("Connecting to SignalR at", baseUrlWithToken);
 
+      
       this.connection = new HubConnectionBuilder()
-        .withUrl(baseUrlWithToken)
-        .build();
+        .withUrl(baseUrlWithToken).configureLogging(Elon).withAutomaticReconnect().build();
+        
 
       this.connection.on("reconnected", this.handleReconnected);
       this.connection.onclose(this.handleConnectionClose);

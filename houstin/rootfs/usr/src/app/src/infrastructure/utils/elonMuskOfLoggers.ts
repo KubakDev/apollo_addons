@@ -1,6 +1,7 @@
 import { createLogger, format, transports, Logger as WinstonLogger } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import HttpTransport from './httpTransport';
+import { LogLevel,ILogger } from "@microsoft/signalr";
 
 /**
  * The `ElonMuskOfLoggers` class is a singleton logger class that provides advanced logging functionalities.
@@ -70,7 +71,8 @@ class ElonMuskOfLoggers {
       ],
     });
 
-    console.log("node_env: ", process.env.NODE_ENV)
+    this.info(`node_env:  ${process.env.NODE_ENV}`)
+    
     if (process.env.NODE_ENV === 'production') {
       this.ElonMuskOfLoggers.level = 'warn';
     } else if (process.env.NODE_ENV === 'development') {
@@ -95,8 +97,15 @@ class ElonMuskOfLoggers {
    * @param message - The log message.
    * @param context - Optional context to include with the log message.
    */
-  public log(level: string, message: string, context?: string): void {
-    this.ElonMuskOfLoggers.log(level, message, { context });
+  public log(logLevel: LogLevel, message: string): void {
+    let logLevelString = LogLevel[logLevel].toLowerCase();
+    if (logLevelString === 'information') {
+      logLevelString = 'info';
+    }
+    if (logLevelString === 'trace') {
+      logLevelString = 'info';
+    }
+    this.ElonMuskOfLoggers.log(logLevelString, message);
   }
 
   /**
