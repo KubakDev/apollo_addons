@@ -6,8 +6,8 @@ import config from "../utils/config/configLoader";
 import TokenDB from "../db/tokenDB";
 import { TokenState } from "../db/tokenDB";
 import Completer from "../utils/completer";
-import { log } from "console";
 import { formatSuccessResponse, formatErrorResponse } from "../utils/formatResponse";
+import Elon from "../utils/elonMuskOfLoggers";
 
 interface JwtPayload {
   exp: number;
@@ -43,7 +43,9 @@ class SignalRSocket extends EventEmitter {
       await this.reAuthenticate();
       await this.startConnection();
     } catch (error) {
-      console.error("Error initializing SignalR connection:", error);
+      // console.error("Error initializing SignalR connection:", error);
+      Elon.error("Error initializing SignalR connection");
+
     }
   }
 
@@ -55,7 +57,8 @@ class SignalRSocket extends EventEmitter {
         throw new Error("Login returned false");
       }
     } catch (error) {
-      console.error("Error in reAuthenticate", error);
+      // console.error("Error in reAuthenticate", error);
+      Elon.error("Error in reAuthenticate");
     }
   }
 
@@ -64,7 +67,8 @@ class SignalRSocket extends EventEmitter {
     try {
       const token = await this.tokenDB.getState();
       const baseUrlWithToken = `${config.apollo_admin.baseUrl}/apollo-hub?access-token=${token?.accessToken}`;
-      console.log("Connecting to SignalR at", baseUrlWithToken);
+      // console.log("Connecting to SignalR at", baseUrlWithToken);
+      Elon.info("Connecting to SignalR at", baseUrlWithToken);
 
       this.connection = new HubConnectionBuilder()
         .withUrl(baseUrlWithToken)
@@ -77,33 +81,44 @@ class SignalRSocket extends EventEmitter {
       }); // Handle "Request" messages
 
       await this.connection.start();
-      console.log("SignalR connection started");
+      // console.log("SignalR connection started");
+      Elon.info("SignalR connection started");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response) {
           if (error.response.status === 401) {
-            console.log("401 Unauthorized, re-authenticating...");
+            // console.log("401 Unauthorized, re-authenticating...");
+            Elon.warn("401 Unauthorized, re-authenticating...");
             await this.reAuthenticate();
             await this.startConnection();
           } else if (
             error.response.status >= 500 &&
             error.response.status < 600
           ) {
-            console.log("Server error, retrying in 5 seconds...");
+            // console.log("Server error, retrying in 5 seconds...");
+            Elon.error("Server error, retrying in 5 seconds...");
             setTimeout(() => this.startConnection(), 5000);
           } else {
-            console.error(
+            // console.error(
+            //   `Error starting SignalR connection: ${error.response.status}`,
+            //   error.response.data
+            // );
+            Elon.error(
               `Error starting SignalR connection: ${error.response.status}`,
               error.response.data
             );
           }
         } else if (error.request) {
-          console.error("No response received from server", error.request);
+          // console.error("No response received from server", error.request);
+          Elon.error("No response received from server", error.request);
         } else {
-          console.error("Error in request setup", error.message);
+          // console.error("Error in request setup", error.message);
+          Elon.error("Error in request setup", error.message);
         }
       } else {
-        console.error("Non-Axios error", error);
+        // console.error("Non-Axios error", error);
+
+        Elon.error("Non-Axios error", error);
       }
     }
   }
@@ -145,12 +160,14 @@ class SignalRSocket extends EventEmitter {
 
   // Handle SignalR reconnected event
   private handleReconnected = async (): Promise<void> => {
-    console.log("SignalR reconnected");
+    // console.log("SignalR reconnected");
+    Elon.info("SignalR reconnected");
   };
 
   // Handle SignalR connection close event
   private handleConnectionClose = async (): Promise<void> => {
-    console.log("SignalR connection closed, restarting...");
+    // console.log("SignalR connection closed, restarting...");
+    Elon.warn("SignalR connection closed, restarting...");
     await this.startConnection();
   };
 
@@ -161,7 +178,8 @@ class SignalRSocket extends EventEmitter {
 
     try {
       const response = await completer.future;
-      console.log("Response from request processor", await response);
+      // console.log("Response from request processor", await response);
+      Elon.info("Response from request processor", await response);
 
       return await response;
     } catch (error: any) 

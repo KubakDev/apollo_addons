@@ -8,22 +8,28 @@ import Elon from "./infrastructure/utils/elonMuskOfLoggers";
  * Main function to handle the setup process.
  */
 (async () => {
-
-  Elon
+try {
+  
+  
   await setupProcess();
 
   const supervisor = await supervisorSocket.waitForConnection();
   if (supervisor) {
-    console.log("Supervisor connected");
+    Elon.info("Supervisor connected");
   } else {
-    console.error("Supervisor connection failed");
+    Elon.error("Supervisor connection failed");
   }
   const signalr = await signalRSocket.waitForConnection();
   if (signalr) {
-    console.log("SignalR connected");
+    Elon.info("SignalR connected");
   } else {
-    console.error("SignalR connection failed");
+    Elon.error("SignalR connection failed");
   }
 
+} catch (error) {
+  
+  Elon.error("Error in main function");
+  
+}
   requestProcessor.innit();
 })();

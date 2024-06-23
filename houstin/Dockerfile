@@ -7,8 +7,8 @@ FROM ${BUILD_FROM}
 # Copy root filesystem
 COPY rootfs /
 
-RUN chmod a+x /etc/services.d/example/run
-RUN chmod a+x /etc/services.d/example/finish
+RUN chmod a+x /etc/services.d/houstin/run
+RUN chmod a+x /etc/services.d/houstin/finish
 
 WORKDIR /usr/src/app
 

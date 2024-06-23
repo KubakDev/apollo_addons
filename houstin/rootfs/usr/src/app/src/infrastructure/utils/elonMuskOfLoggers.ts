@@ -122,7 +122,7 @@ class ElonMuskOfLoggers {
    * @param message - The log message.
    * @param context - Optional context to include with the log message.
    */
-  public error(message: string, context?: string): void {
+  public error(message: string, context?: any): void {
     this.ElonMuskOfLoggers.error(message, { context });
   }
 
@@ -193,11 +193,6 @@ class ElonMuskOfLoggers {
 
 // Usage example
 const Elon = ElonMuskOfLoggers.getInstance();
-Elon.info('This is an info message');
-Elon.warn('This is a warning message');
-Elon.error('This is an error message');
-Elon.debug('This is a debug message');
-Elon.logPerformance('Performance logging example');
-Elon.trace('Tracing example', '12345-abcde');
+
 
 export default Elon;
