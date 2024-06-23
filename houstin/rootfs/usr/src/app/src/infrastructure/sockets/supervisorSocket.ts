@@ -11,6 +11,9 @@ class SupervisorSocket {
   private completers: Map<number, Completer<any>> = new Map();
   private messageIdCounter: number = 1;
   private reconnectInterval: number = 5000; // Interval for reconnection attempts in ms
+  private reconnectAttempts: number = 0;
+  private maxReconnectInterval: number = 30000; // Max interval for reconnection attempts
+
 
   // Private constructor to prevent instantiation
   private constructor() {
@@ -33,13 +36,10 @@ class SupervisorSocket {
 
       return new Promise<void>((resolve, reject) => {
         this.socket = new WebSocket(socketUrl.toString());
-
         this.socket.on("open", () => this.handleOpen(resolve));
         this.socket.on("message", (data) => this.handleMessage(data));
-        this.socket.on("error", (error) => this.handleError(error, reject));
-        this.socket.on("close", (code, reason) =>
-          this.handleClose(code, reason.toString())
-        );
+        this.socket.on("error", (error) => this.handleError(error));
+        this.socket.on("close", (code, reason) => this.handleClose(code, reason.toString()));
       });
     } catch (error) {
       Elon.error("Error during Supervisor Socket connection initialization:", error);
@@ -50,6 +50,7 @@ class SupervisorSocket {
   // Handles the opening of the WebSocket connection
   private handleOpen(resolve: () => void) {
     Elon.warn("Supervisor Socket Connection Opened");
+    this.reconnectAttempts = 0; // Reset reconnect attempts on a successful connection
     resolve();
   }
 
@@ -80,11 +81,12 @@ class SupervisorSocket {
     }
   }
 
+
+
   // Handles errors from the WebSocket connection
-  private handleError(error: Error, reject: (reason?: any) => void) {
+  private handleError(error: Error) {
     Elon.error("Supervisor Socket Error:", error);
-    this.scheduleReconnect();
-    reject(error);
+    this.socket = null; // Ensure socket is null to prevent further operations on it
   }
 
   // Handles the closing of the WebSocket connection
@@ -96,10 +98,13 @@ class SupervisorSocket {
 
   // Schedule a reconnection attempt after a delay
   private scheduleReconnect() {
-    setTimeout(() => {
-      Elon.warn("Attempting to reconnect to Supervisor...");
-      this.startConnection();
-    }, this.reconnectInterval);
+    if (this.reconnectAttempts < this.maxReconnectInterval / this.reconnectInterval) {
+      setTimeout(() => {
+        this.reconnectAttempts++;
+        Elon.warn("Attempting to reconnect to Supervisor...");
+        this.startConnection();
+      }, this.reconnectInterval * Math.pow(2, this.reconnectAttempts));
+    }
   }
 
   // Asynchronously closes the WebSocket connection, if it is open
