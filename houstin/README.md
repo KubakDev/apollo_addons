@@ -49,13 +49,13 @@ apollo_admin:
   hubName: /apollo-hub
   baseUrl: http://qwerty.example.com:1234
   supervisorSocketPath: ws://supervisor/core/websocket
-  onDemandSocketPath: ws://homeassistant.local:8123/api/websocket
+  onDemandSocketPath: ws://127.0.0.1:8123/api/websocket
 apollo_auth:
-  client_id: http://homeassistant.local:1880/endpoint
-  redirect_uri: http://homeassistant.local:1880/endpoint/auth_callback
-  auth_providers_uri: http://homeassistant.local:8123/auth/providers
-  auth_login_flow_t: http://homeassistant.local:8123/auth/login_flow
-  auth_token_uri: http://homeassistant.local:8123/auth/token
+  client_id: http://127.0.0.1:1880/endpoint
+  redirect_uri: http://127.0.0.1:1880/endpoint/auth_callback
+  auth_providers_uri: http://127.0.0.1:8123/auth/providers
+  auth_login_flow_t: http://127.0.0.1:8123/auth/login_flow
+  auth_token_uri: http://127.0.0.1:8123/auth/token
 # /////////////////////////////////////////////////////
 ```
 
