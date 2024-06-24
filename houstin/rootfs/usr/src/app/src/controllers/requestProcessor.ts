@@ -132,7 +132,7 @@ class RequestProcessor {
       const response = await create_user(
         username,
         password,
-        roleType
+        "Owner"
       );
 
       if (!response.success) {
